@@ -1,0 +1,129 @@
+message BolServiceProto {
+	required int32 version = 1;
+	required int32 id = 2;
+	required int32 clientId = 3;
+}
+
+message BolServiceHead {
+	required int32 msgId = 1;
+	optional int64 timestamp = 2;
+}
+
+
+message FieldValue {
+	required string value = 1;
+	required bool isnull = 2;
+}
+
+message Record {
+	repeated FieldValue values = 1;
+}
+
+message BolServiceRequest {
+	required BolServiceProto proto = 1;
+	required int32 syspid = 2;
+	required int32 programid = 3;
+
+	enum OperationType {
+		REGISTER = 1;	//进程手工拉起，注册必要信息
+		HEARTBEAT = 2;	//送心跳
+		ADD = 3;		//新增数据
+		ERASE = 4;		//删除数据
+		UPDATE = 5;		//更新数据
+		QUERY = 6;		//查询数据
+		REPLACE = 7;		//替换数据
+	}
+	enum ProcessStatus {
+		ST_INIT = 0;  		//初始态
+		ST_READY = 1;  		//就绪态
+		ST_RUNNING = 2;		//运行态
+		ST_HOLDING = 3;		//挂起态
+		ST_MAITENANCE = 4;	//维保态
+		ST_ABORT = 5; 		//异常
+		ST_STOP = 6;		//退出态
+	}
+	
+	message Filter {
+		required string key = 1;
+		required string value = 2;
+	}
+	
+	message RegisterRequest {		
+		required ProcessStatus status = 1;
+		required int64 createTime = 2;
+	}
+	message HeartBeatRequest {
+		required int64 bpcbID = 1;		
+	}
+	message AddRequest {
+		required string table = 1;
+		repeated string fields = 2;
+		repeated Record records = 3;
+	}
+	message EraseRequest {
+		required string table = 1;
+		repeated Filter filters = 2;
+	}
+	message UpdateRequest {
+		required string table = 1;
+		repeated Filter filters = 2;
+		repeated Filter values = 3;
+	}
+	message QueryRequest {
+		required string table = 1;
+		repeated Filter filters = 3;
+	}
+	message ReplaceRequest {
+		required string table = 1;
+		repeated string fields = 2;
+		repeated Record records = 3;
+	}
+
+
+	message Request {
+		required BolServiceHead msgHead = 1;
+		required OperationType opType = 2;
+		optional RegisterRequest register = 3;
+		optional HeartBeatRequest heartbeat = 4;
+		optional AddRequest add = 5;
+		optional EraseRequest erase = 6;
+		optional UpdateRequest update = 7;
+		optional QueryRequest query = 8;
+		optional ReplaceRequest replace = 9;
+	}
+	repeated Request msgs = 4;
+}
+
+message BolServiceResponse {
+	required BolServiceProto proto = 1;
+	
+	message RegisterResponse {
+		required int32 bpcbId = 1;
+	}
+	
+	message QueryResponse {
+		required Record fields = 1;
+		repeated Record records = 2;
+	}
+		
+	message UpdateResponse {
+		required int32 num = 1;
+	}
+
+	message EraseResponse {
+		required int32 num = 1;
+	}
+
+	message Response {
+		required BolServiceHead msgHead = 1;
+		required int32 status = 2;
+		optional RegisterResponse register = 3;
+		optional QueryResponse queryResult = 4;
+		optional UpdateResponse updateResult = 5;
+		optional EraseResponse eraseResponse = 6;
+	}
+		
+	repeated Response msgs = 2;
+	
+}
+
